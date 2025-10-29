@@ -2,19 +2,24 @@ name: Load Testing with K6
 
 on: 
   push:
-    branches: [ master ]
+    branches: 
+      - 'main'
+      - 'master'
   pull_request:
-    branches: [ master ]
+    branches: 
+      - 'main'
+      - 'master'
 
 jobs:
   load-test:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    
+    - name: Checkout code
+      uses: actions/checkout@v4  
+
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4  
       with:
         node-version: '18'
     
@@ -23,22 +28,21 @@ jobs:
     
     - name: Install K6
       run: |
-        sudo gpg -k
-        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3D2D6AE4F50F5867A9A449A0DA722
-        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install k6
+        wget https://github.com/grafana/k6/releases/download/v0.48.0/k6-v0.48.0-linux-amd64.tar.gz
+        tar -xzf k6-v0.48.0-linux-amd64.tar.gz
+        sudo cp k6-v0.48.0-linux-amd64/k6 /usr/local/bin/
     
     - name: Start API Server
       run: |
-        npm start &
-        sleep 5  # Espera a que el servidor inicie
+        npm install
+        npm start & 
+        sleep 5
     
     - name: Run K6 Load Tests
       run: k6 run k6-tests/load.js
 
     - name: Upload K6 results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  
       with:
         name: k6-report
         path: k6-report.json
